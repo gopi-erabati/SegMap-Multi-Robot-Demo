@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+
+  <arg name="respawn_value" default="false" /> <!-- boolean: true, false -->
+
+  <!-- Bag file path -->
+  <arg name="bag_file1" value="$(env HOME)/.segmap/kitti/2011_10_03_drive_27_30_113_na0.bag"/>
+
+    <!-- Bag file path -->
+  <arg name="bag_file2" value="$(env HOME)/.segmap/kitti/2011_10_03_drive_27_114_170_na1.bag"/>
+
+    <!-- Bag file path -->
+  <arg name="bag_file3" value="$(env HOME)/.segmap/kitti/2011_10_03_drive_27_171_280_na2.bag"/>
+
+      <!-- Bag file path -->
+  <arg name="bag_file4" value="$(env HOME)/.segmap/kitti/2011_10_03_drive_27_281_366_na3.bag"/>
+
+      <!-- Bag file path -->
+  <arg name="bag_file5" value="$(env HOME)/.segmap/kitti/2011_10_03_drive_27_367_400_na4.bag"/>
+
+  <!-- Rviz visualization config file path -->
+  <arg name="rviz_config_file" value="$(env HOME)/.segmap/kitti/kitti_localization_multi.rviz"/>
+
+  <!-- ROS parameters -->
+  <rosparam>use_sim_time: false</rosparam>
+  <rosparam command="load" file="$(find segmapper)/launch/kitti/cnn_kitti_localization_multi.yaml"/>
+
+   <!-- CNN model path -->
+  <arg name="cnn_model_path" value="$(env HOME)/.segmap/trained_models/segmap64/"/>
+  <rosparam param="/SegMapper/SegMatchWorker/SegMatch/Descriptors/cnn_model_path" subst_value="True">$(arg cnn_model_path)</rosparam>
+
+  <!-- Semantics nn path -->
+  <arg name="semantics_nn_path" value="$(env HOME)/.segmap/trained_models/segmap64_semantics/"/>
+  <rosparam param="/SegMapper/SegMatchWorker/SegMatch/Descriptors/semantics_nn_path" subst_value="True">$(arg semantics_nn_path)</rosparam>
+
+  <!-- Target cloud -->
+  <arg name="target_cloud" value="$(env HOME)/.segmap/kitti/drive27_target_map.pcd"/>
+  <rosparam param="/SegMapper/SegMatchWorker/target_cloud_filename" subst_value="True">$(arg target_cloud)</rosparam>
+
+  <!-- Callgrind profiling option -->
+  <arg name="enable_callgrind" default="false" />
+  <arg name="play_rate" value="0.005" if="$(arg enable_callgrind)"/>
+  <arg name="play_rate" value="1" unless="$(arg enable_callgrind)"/>
+
+  <!-- rviz node -->
+  <node name="visualizer" pkg="rviz" type="rviz" output="screen" respawn="$(arg respawn_value)" args="-d $(arg rviz_config_file)" />
+
+  <!--
+  <node pkg="tf" type="tf_remap" name="tf_remapper1" output="screen">
+    <rosparam param="mappings">
+      [{old: /na0/world, new: world}]
+    </rosparam>
+  </node> -->
+  <!-- rosbag player node -->
+  <node name="player1" pkg="rosbag" type="play" output="screen" args=" -r $(arg play_rate) -d 40 $(arg bag_file1)">
+  <!--  <remap from="tf" to="tf_old" /> -->
+  </node>
+
+  <!--
+  <node pkg="tf" type="tf_remap" name="tf_remapper2" output="screen">
+    <rosparam param="mappings">
+      [{old: /na1/world, new: world}]
+   </rosparam>
+  </node> -->
+  <!-- rosbag player node -->
+  <node name="player2" pkg="rosbag" type="play" output="screen" args=" -r $(arg play_rate) -d 40 $(arg bag_file2)">
+  <!--  <remap from="tf" to="tf_old" /> -->
+  </node>
+
+  <!--
+  <node pkg="tf" type="tf_remap" name="tf_remapper3" output="screen">
+    <rosparam param="mappings">
+      [{old: /na2/world, new: world}]
+   </rosparam>
+  </node> -->
+  <!-- rosbag player node -->
+  <node name="player3" pkg="rosbag" type="play" output="screen" args=" -r $(arg play_rate) -d 40 $(arg bag_file3)">
+  <!--  <remap from="tf" to="tf_old" /> -->
+  </node>
+
+  <!--
+  <node pkg="tf" type="tf_remap" name="tf_remapper4" output="screen">
+    <rosparam param="mappings">
+      [{old: /na3/world, new: world}]
+   </rosparam>
+  </node> -->
+  <!-- rosbag player node -->
+  <node name="player4" pkg="rosbag" type="play" output="screen" args=" -r $(arg play_rate) -d 40 $(arg bag_file4)">
+  <!--  <remap from="tf" to="tf_old" /> -->
+  </node>
+
+  <!--
+  <node pkg="tf" type="tf_remap" name="tf_remapper5" output="screen">
+    <rosparam param="mappings">
+      [{old: /na4/world, new: world}]
+   </rosparam>
+  </node> -->
+  <!-- rosbag player node -->
+  <node name="player5" pkg="rosbag" type="play" output="screen" args=" -r $(arg play_rate) -d 40 $(arg bag_file5)">
+  <!--  <remap from="tf" to="tf_old" /> -->
+  </node>
+
+
+  <!-- segmapper node -->
+  <include file="$(find segmapper)/launch/segmapper.launch">
+    <arg name="icp_configuration_file" value="$(find segmapper)/launch/kitti/icp_dynamic_outdoor.yaml"/>
+    <arg name="icp_input_filters_file" value="$(find segmapper)/launch/kitti/input_filters_outdoor.yaml"/>
+    <arg name="enable_callgrind" value="$(arg enable_callgrind)"/>
+  </include>
+
+</launch>

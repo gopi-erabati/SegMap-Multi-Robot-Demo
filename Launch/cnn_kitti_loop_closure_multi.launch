@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+
+  <arg name="respawn_value" default="false" /> <!-- boolean: true, false -->
+
+    <!-- Bag file path -->
+  <arg name="bag_file1" value="$(env HOME)/.segmap/kitti/2011_09_30_drive_18_00_45_na0.bag"/>
+  <rosparam param="LaserMapper/bag_file" subst_value="True">$(arg bag_file1)</rosparam>
+
+  <!-- Bag file path -->
+  <arg name="bag_file2" value="$(env HOME)/.segmap/kitti/2011_09_30_drive_18_25_75_na1.bag"/>
+  <rosparam param="LaserMapper/bag_file" subst_value="True">$(arg bag_file2)</rosparam>
+
+    <!-- Bag file path -->
+  <arg name="bag_file3" value="$(env HOME)/.segmap/kitti/2011_09_30_drive_18_76_190_na2.bag"/>
+  <rosparam param="LaserMapper/bag_file" subst_value="True">$(arg bag_file3)</rosparam>
+
+  <!-- Bag file path -->
+  <arg name="bag_file4" value="$(env HOME)/.segmap/kitti/2011_09_30_drive_18_170_287_na3.bag"/>
+  <rosparam param="LaserMapper/bag_file" subst_value="True">$(arg bag_file4)</rosparam>
+
+  <!-- Rviz visualization config file path -->
+  <arg name="rviz_config_file" value="$(env HOME)/.segmap/kitti/kitti_loop_closure_multi.rviz"/>
+
+  <!-- ROS parameters -->
+  <rosparam>use_sim_time: false</rosparam>
+  <rosparam command="load" file="$(find segmapper)/launch/kitti/cnn_kitti_loop_closure_multi.yaml"/>
+
+  <!-- rviz node -->
+  <node name="visualizer" pkg="rviz" type="rviz" output="screen" respawn="$(arg respawn_value)" args="-d $(arg rviz_config_file)" />
+
+  <!-- CNN model path -->
+  <arg name="cnn_model_path" value="$(env HOME)/.segmap/trained_models/segmap64/"/>
+  <rosparam param="/SegMapper/SegMatchWorker/SegMatch/Descriptors/cnn_model_path" subst_value="True">$(arg cnn_model_path)</rosparam>
+
+  <!-- Semantics nn path -->
+  <arg name="semantics_nn_path" value="$(env HOME)/.segmap/trained_models/segmap64_semantics/"/>
+  <rosparam param="/SegMapper/SegMatchWorker/SegMatch/Descriptors/semantics_nn_path" subst_value="True">$(arg semantics_nn_path)</rosparam>
+
+  <!-- segmapper node -->
+  <include file="$(find segmapper)/launch/segmapper.launch">
+    <arg name="icp_configuration_file" value="$(find segmapper)/launch/kitti/icp_dynamic_outdoor.yaml"/>
+    <arg name="icp_input_filters_file" value="$(find segmapper)/launch/kitti/input_filters_outdoor.yaml"/>
+  </include>
+
+  <!-- rosbag player node -->
+  <node name="player1" pkg="rosbag" type="play" output="screen" args=" -r 1 -s 0 -d 10 --clock $(arg bag_file1)"/>
+
+  <!-- rosbag player node -->
+  <node name="player2" pkg="rosbag" type="play" output="screen" args=" -r 1 -s 0 -d 10 --clock $(arg bag_file2)"/>
+
+  <!-- rosbag player node -->
+  <node name="player3" pkg="rosbag" type="play" output="screen" args=" -r 1 -s 0 -d 10 --clock $(arg bag_file3)"/>
+
+      <!-- rosbag player node -->
+  <node name="player4" pkg="rosbag" type="play" output="screen" args=" -r 1 -s 0 -d 10 --clock $(arg bag_file4)"/>
+
+</launch>
